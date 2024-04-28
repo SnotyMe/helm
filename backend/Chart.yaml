@@ -1,0 +1,23 @@
+apiVersion: v2
+name: backend
+version: 0.0.1
+description: Backend of the Snoty application suite
+type: application
+home: snoty.me
+sources:
+  - https://github.com/SnotyMe/snoty-backend
+  - https://github.com/SnotyMe/helm
+maintainers:
+  - name: Jakob Hofer
+    email: SIMULATAN@proton.me
+    url: https://github.com/SIMULATAN
+icon: https://avatars.githubusercontent.com/u/163506575
+appVersion: "0.0.1"
+dependencies:
+  - name: common
+    version: 2.x.x
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: postgresql
+    version: ~15.2.5
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.deploy

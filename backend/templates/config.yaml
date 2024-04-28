@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  {{- if or .Values.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.service.annotations .Values.commonAnnotations ) "context" . ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+data:
+  application.yml: |-
+    {{- with .Values.ingress }}
+    publicHost: {{ ternary "https" "http" .tls }}://{{ .hostname }}{{ .path }}
+    {{- end }}
+    {{- with .Values.postgresql }}
+    {{- if .deploy }}
+    database:
+      username: {{ .auth.username }}
+      password: {{ .auth.password }}
+      jdbcUrl: jdbc:postgresql://{{ $.Release.Name }}-postgresql:{{ .primary.service.ports.postgresql | default 5432 }}/{{ .auth.database }}
+    {{- end }}
+    {{- end }}
+    {{- with .Values.keycloak }}
+    {{- if .deploy }}
+    authentication:
+      serverHost: {{ ternary "https" "http" .ingress.tls }}://{{ .ingress.hostname }}{{ .ingress.path }}
+    {{- end }}
+    {{- end }}
+    {{- .Values.appConfig | toYaml | nindent 4 }}
+
