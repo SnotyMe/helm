@@ -224,8 +224,19 @@ postgresql:
 
 keycloak:
   deploy: false
+  resourcesPreset: none
+  postgresql:
+    enabled: false
+  externalDatabase:
+    # make sure to set these parameters to the same value as `postgresql.auth`
+    host: snoty-backend-postgresql
+    port: 5432
+    user: snoty
+    database: snoty
+    password: snoty
   ingress:
     tls: false
+    # minikube: /etc/hosts: 192.168.49.2    keycloak.snoty.me
     hostname: snoty-keycloak.local
     path: /
 
