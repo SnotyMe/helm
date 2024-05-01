@@ -10,22 +10,4 @@ metadata:
   {{- end }}
 data:
   application.yml: |-
-    {{- with .Values.ingress }}
-    publicHost: {{ ternary "https" "http" .tls }}://{{ .hostname }}{{ .path }}
-    {{- end }}
-    {{- with .Values.postgresql }}
-    {{- if .deploy }}
-    database:
-      username: {{ .auth.username }}
-      password: {{ .auth.password }}
-      jdbcUrl: jdbc:postgresql://{{ $.Release.Name }}-postgresql:{{ .primary.service.ports.postgresql | default 5432 }}/{{ .auth.database }}
-    {{- end }}
-    {{- end }}
-    {{- with .Values.keycloak }}
-    {{- if .deploy }}
-    authentication:
-      serverHost: {{ ternary "https" "http" .ingress.tls }}://{{ .ingress.hostname }}{{ .ingress.path }}
-    {{- end }}
-    {{- end }}
-    {{- .Values.appConfig | toYaml | nindent 4 }}
-
+    {{- include "snoty.config" . | nindent 4 }}
