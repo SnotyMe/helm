@@ -1,0 +1,10 @@
+title: Snoty Helm Chart Repository
+description: A chart repository for Snoty's components.
+theme: minima
+url: "https://helm.snoty.me"
+repo_url: "https://helm.snoty.me"
+repo_name: snoty
+exclude:
+- Gemfile
+- Gemfile.lock
+- .gitignore
