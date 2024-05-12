@@ -3,10 +3,10 @@ name: backend
 version: 0.0.2
 description: Backend of the Snoty application suite
 type: application
-home: snoty.me
+home: https://snoty.me
 sources:
-  - https://github.com/SnotyMe/snoty-backend
   - https://github.com/SnotyMe/helm
+  - https://github.com/SnotyMe/snoty-backend
 maintainers:
   - name: Jakob Hofer
     email: SIMULATAN@proton.me
