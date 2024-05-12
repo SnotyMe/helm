@@ -14,7 +14,7 @@ entries:
       version: ~15.2.5
     description: Backend of the Snoty application suite
     digest: 8625870c39da7b5e0f3e4ec56572e8fc7dc27f0cc4055ab8a662c2830f3352b5
-    home: snoty.me
+    home: https://snoty.me
     icon: https://avatars.githubusercontent.com/u/163506575
     maintainers:
     - email: SIMULATAN@proton.me
@@ -22,8 +22,8 @@ entries:
       url: https://github.com/SIMULATAN
     name: backend
     sources:
-    - https://github.com/SnotyMe/snoty-backend
     - https://github.com/SnotyMe/helm
+    - https://github.com/SnotyMe/snoty-backend
     type: application
     urls:
     - https://github.com/SnotyMe/helm/releases/download/backend-0.0.2/backend-0.0.2.tgz
