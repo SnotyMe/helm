@@ -28,9 +28,13 @@ spec:
             containerPort: {{ .Values.containerPorts.api }}
           - name: monitoring
             containerPort: {{ .Values.containerPorts.monitoring }}
+          - name: jobrunr
+            containerPort: {{ .Values.containerPorts.jobrunr }}
           {{- if .Values.extraContainerPorts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
           {{- end }}
+        env:
+          {{ include "snoty.envLoaders" . | nindent 8 | trim }}
         volumeMounts:
           - mountPath: /app/application.yml
             name: app-config
