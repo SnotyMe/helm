@@ -12,7 +12,7 @@ maintainers:
     email: SIMULATAN@proton.me
     url: https://github.com/SIMULATAN
 icon: https://avatars.githubusercontent.com/u/163506575
-appVersion: "0.0.1-36"
+appVersion: "0.0.1-39"
 dependencies:
   - name: common
     version: 2.x.x
