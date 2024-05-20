@@ -48,6 +48,7 @@ podLabels: {}
 containerPorts:
   api: 8080
   monitoring: 9090
+  jobrunr: 8082
 
   ## Kubernetes configuration
 ## For minikube, set this to NodePort, for ingress ClusterIP, elsewhere use LoadBalancer
@@ -58,19 +59,24 @@ service:
   type: LoadBalancer
   ## @param service.ports.api Service API port
   ## @param service.ports.monitoring Service monitoring port
+  ## @param service.ports.jobrunr Jobrunr dashboard port
   ##
   ports:
     api: 80
     monitoring: 9090
+    jobrunr: 8082
   ## @param service.nodePorts.api Kubernetes API node port
   ## @param service.nodePorts.monitoring Kubernetes monitoring node port
+  ## @param service.nodePorts.jobrunr Kubernetes jobrunr dashboard node port
   ## nodePorts:
   ##   api: <to set explicitly, choose port between 30000-32767>
   ##   monitoring: <to set explicitly, choose port between 30000-32767>
+  ##   jobrunr: <to set explicitly, choose port between 30000-32767>
   ##
   nodePorts:
     api: ""
     monitoring: ""
+    jobrunr: ""
   ## @param service.clusterIP Service Cluster IP
   ##
   clusterIP: ""
@@ -108,6 +114,12 @@ service:
 
 appConfig:
   environment: PRODUCTION
+  ## @param appConfig.database database configuration
+    ## @param appConfig.database.username postgres username
+    ## @param appConfig.database.password postgres password
+    ## @param appConfig.database.jdbcUrl JDBC url
+## @param extraAppConfig Add your own settings, to be added to the `configuration.yml`
+extraAppConfig: {}
 
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
