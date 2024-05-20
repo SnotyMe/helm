@@ -114,9 +114,10 @@ service:
 
 appConfig:
   environment: PRODUCTION
-  database:
-    username: snoty
-    password: snoty
+  ## @param appConfig.database database configuration
+    ## @param appConfig.database.username postgres username
+    ## @param appConfig.database.password postgres password
+    ## @param appConfig.database.jdbcUrl JDBC url
 ## @param extraAppConfig Add your own settings, to be added to the `configuration.yml`
 extraAppConfig: {}
 

@@ -6,7 +6,8 @@
     publicHost: {{ ternary "https" "http" .tls }}://{{ .hostname }}{{ .path }}
     {{- end }}
     database:
-    {{- if .deploy }}
+    # if `appConfig.database` is set, it overrides the config from `postgresql`.
+    {{- if and $.Values.postgresql.deploy (not (kindIs "map" $.Values.appConfig.database)) }}
       {{- with $.Values.postgresql }}
       username: {{ .auth.username }}
       password: {{ .auth.password }}
@@ -55,8 +56,10 @@
 
 {{- define "snoty.envLoaders" -}}
 {{- with $.Values.appConfig }}
-  {{ if kindIs "map" .database.password }}
-  {{- with .database.password -}}
+  {{ if kindIs "map" .database }}
+  {{- with .database }}
+  {{ if kindIs "map" .password }}
+  {{- with .password -}}
   - name: database.password
     valueFrom:
       secretKeyRef:
@@ -64,13 +67,15 @@
         key: {{ .secretKey | default "password" }}
   {{- end -}}
   {{- end -}}
-  {{ if kindIs "map" .database.jdbcUrl }}
-  {{- with .database.jdbcUrl -}}
+  {{ if kindIs "map" .jdbcUrl }}
+  {{- with .jdbcUrl -}}
   - name: database.jdbcUrl
     valueFrom:
       secretKeyRef:
         name: {{ .secretName }}
         key: {{ .secretKey | default "jdbcUrl" }}
+  {{- end -}}
+  {{- end -}}
   {{- end -}}
   {{- end -}}
   {{- with .authentication -}}
