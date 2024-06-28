@@ -112,6 +112,8 @@ service:
   ##
   sessionAffinityConfig: {}
 
+replicas: 1
+
 appConfig:
   environment: PRODUCTION
   ## @param appConfig.database database configuration
@@ -120,6 +122,8 @@ appConfig:
     ## @param appConfig.database.jdbcUrl JDBC url
 ## @param extraAppConfig Add your own settings, to be added to the `configuration.yml`
 extraAppConfig: {}
+
+extraEnvVars: []
 
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##

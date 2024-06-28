@@ -8,6 +8,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  replicas: {{ .Values.replicas }}
   {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
@@ -34,7 +35,13 @@ spec:
           {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
           {{- end }}
         env:
-          {{ include "snoty.envLoaders" . | nindent 8 | trim }}
+          {{- $envLoaders := include "snoty.envLoaders" . | nindent 8 | trim }}
+          {{- if $envLoaders }}
+          {{ $envLoaders }}
+          {{- end }}
+          {{- if .Values.extraEnvVars }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 10 }}
+          {{- end }}
         volumeMounts:
           - mountPath: /app/application.yml
             name: app-config
