@@ -1,6 +1,6 @@
 apiVersion: v2
 name: backend
-version: 0.1.1
+version: 0.2.0
 description: Backend of the Snoty application suite
 type: application
 home: https://snoty.me
@@ -12,17 +12,17 @@ maintainers:
     email: SIMULATAN@proton.me
     url: https://github.com/SIMULATAN
 icon: https://avatars.githubusercontent.com/u/163506575
-appVersion: "0.0.1-39"
+appVersion: "0.0.1-133"
 dependencies:
   - name: common
     version: 2.x.x
     repository: oci://registry-1.docker.io/bitnamicharts
-  - name: postgresql
-    version: ~15.2.5
+  - name: mongodb
+    version: ~15.6.19
     repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.deploy
+    condition: mongodb.deploy
   - name: keycloak
-    version: 21.1.0
+    version: 22.1.2
     repository: https://charts.bitnami.com/bitnami
     condition: keycloak.deploy
 

@@ -1,35 +1,53 @@
 {{- define "snoty.baseConfig" -}}
     {{- with $.Values.appConfig }}
     environment: {{ .environment }}
+    corsHosts:
+      {{ range .corsHosts }}
+        - {{ . | quote }}
+      {{ end }}
+    featureFlags:
+      {{- toYaml .featureFlags | nindent 12 -}}
+      {{- if and .featureFlags.flags (ne .featureFlags.type "InMemory") -}}
+        {{- fail "Error: custom feature flag values are only supported when using the InMemory provider" -}}
+      {{- end -}}
     {{- end }}
     {{- with $.Values.ingress }}
     publicHost: {{ ternary "https" "http" .tls }}://{{ .hostname }}{{ .path }}
     {{- end }}
-    database:
-    # if `appConfig.database` is set, it overrides the config from `postgresql`.
-    {{- if and $.Values.postgresql.deploy (not (kindIs "map" $.Values.appConfig.database)) }}
-      {{- with $.Values.postgresql }}
-      username: {{ .auth.username }}
-      password: {{ .auth.password }}
-      jdbcUrl: jdbc:postgresql://{{ $.Release.Name }}-postgresql:{{ .primary.service.ports.postgresql | default 5432 }}/{{ .auth.database }}
+    mongodb:
+    # if `appConfig.mongodb` is set, it overrides the config from `mongodb`.
+    {{- if and $.Values.mongodb.deploy (not (kindIs "map" $.Values.appConfig.mongodb)) }}
+      {{- with $.Values.mongodb }}
+      {{- if .auth.existingSecret }}
+        connection:
+          type: Split
+          srv: {{ eq .architecture "replicaset" }}
+          host: {{ .service.nameOverride }}.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
+          port: {{ .service.ports.mongodb }}
+          database: {{ index .auth.databases 0 }}
+          additionalOptions: tls={{ .tls.enabled }}&ssl={{ .tls.enabled }}
+        authentication:
+          username: {{ index .auth.usernames 0 }}
+          authDatabase: {{ index .auth.databases 0 }}
+          # password is loaded from existingSecret
+      {{- else }}
+        connection:
+          # does not support architecture=replicaset, prefer using externalSecret
+          type: ConnectionString
+          connectionString: mongodb://{{ index .auth.usernames 0 }}:{{ index .auth.passwords 0 }}@{{ $.Release.Name }}-mongodb/{{ index .auth.databases 0 }}
+      {{- end }}
       {{- end }}
     {{- else }}
-      {{- with $.Values.appConfig.database }}
-      {{- if kindIs "string" .username }}
-      username: {{ .username }}
-      {{- end }}
-      {{- if kindIs "string" .password }}
-      password: {{ .password }}
-      {{- end }}
-      {{- if kindIs "string" .jdbcUrl }}
-      jdbcUrl: {{ .jdbcUrl }}
+      {{- with $.Values.appConfig.mongodb }}
+      {{- if kindIs "string" .connectionString }}
+      connectionString: {{ .connectionString }}
       {{- end }}
       {{- end }}
     {{- end }}
     authentication:
     {{- if $.Values.keycloak.deploy }}
       {{- with $.Values.keycloak }}
-      serverUrl: {{ ternary "https" "http" .ingress.tls }}://{{ .ingress.hostname }}/{{ trimPrefix "/" ($.Values.appConfig.authentication.path | default .ingress.path) }}
+      serverUrl: {{ ternary "https" "http" .ingress.tls }}://{{ .ingress.hostname }}/{{ trimPrefix "/" (($.Values.appConfig.authentication).path | default .ingress.path) }}
       clientId: {{ $.Values.appConfig.authentication.clientId }}
       clientSecret: {{ $.Values.appConfig.authentication.clientSecret }}
       {{- end }}
@@ -37,6 +55,9 @@
       {{- with $.Values.appConfig.authentication }}
       {{- if kindIs "string" .serverUrl }}
       serverUrl: {{ .serverUrl }}/{{ trimPrefix "/" (.path | default "") }}
+      {{- end }}
+      {{- if kindIs "string" .issuerUrl }}
+      issuerUrl: {{ .issuerUrl }}{{ trimSuffix "/" (.path | default "") }}
       {{- end }}
       {{- if kindIs "string" .clientId }}
       clientId: {{ .clientId }}

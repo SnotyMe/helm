@@ -1,3 +1,5 @@
+clusterDomain: cluster.local
+
 ## @param image.registry [default: ghcr.io] image registry
 ## @param image.repository [default: snotyme/snoty-backend] image repository
 ## @skip image.tag image tag (immutable tags are recommended)
@@ -47,7 +49,7 @@ podLabels: {}
 ##
 containerPorts:
   api: 8080
-  monitoring: 9090
+  monitoring: 9000
   jobrunr: 8082
 
   ## Kubernetes configuration
@@ -116,10 +118,12 @@ replicas: 1
 
 appConfig:
   environment: PRODUCTION
-  ## @param appConfig.database database configuration
-    ## @param appConfig.database.username postgres username
-    ## @param appConfig.database.password postgres password
-    ## @param appConfig.database.jdbcUrl JDBC url
+  corsHosts:
+    - '*'
+  featureFlags:
+    type: InMemory
+  ## @param appConfig.database mongodb configuration
+    ## @param appConfig.mongodb.connectionString mongodb connection string
 ## @param extraAppConfig Add your own settings, to be added to the `configuration.yml`
 extraAppConfig: {}
 
@@ -219,41 +223,43 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-## @section Database parameters
 
-postgresql:
-  deploy: false
+
+# TODO: set image tag to 8 once bitnami publishes images
+mongodb:
+  deploy: true
+  resourcesPreset: micro
   auth:
-    username: snoty
-    password: snoty
-    database: snoty
-  primary:
-    resources:
-      limits:
-        ephemeral-storage: 0Gi
-    persistence:
-      enabled: true
-      size: 500Mi
-    service:
-      ports:
-        postgresql: 5432
+    usernames:
+      - snoty
+    passwords:
+      - snoty
+    databases:
+      - snoty
+    # important: either use `existingSecret` to specify the root password
+    # or do your best to ignore the generated one in ArgoCD
+    rootPassword: changeme
+  architecture: standalone
+  service:
+    nameOverride: snoty-mongodb
+  # --- HA ---
+  # architecture: replicaset
+
+
 
 keycloak:
   deploy: false
   resourcesPreset: none
   postgresql:
-    enabled: false
-  externalDatabase:
-    # make sure to set these parameters to the same value as `postgresql.auth`
-    host: snoty-backend-postgresql
-    port: 5432
-    user: snoty
-    database: snoty
-    password: snoty
+    primary:
+      resourcesPreset: none
+    enabled: true
   ingress:
     tls: false
-    # minikube: /etc/hosts: 192.168.49.2    keycloak.snoty.me
-    hostname: snoty-keycloak.local
+    # when using minikube:
+    # /etc/hosts
+    # 192.168.49.2    keycloak.snoty.me
+    hostname: keycloak.minikube.snoty.me
     path: /
 
 ## Configure extra options for liveness and readiness probes

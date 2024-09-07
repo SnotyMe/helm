@@ -35,6 +35,11 @@ spec:
           {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
           {{- end }}
         env:
+          - name: mongodb.authentication.password
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.mongodb.auth.existingSecret }}
+                key: mongodb-passwords
           {{- $envLoaders := include "snoty.envLoaders" . | nindent 8 | trim }}
           {{- if $envLoaders }}
           {{ $envLoaders }}

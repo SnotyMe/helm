@@ -1,12 +1,12 @@
 dependencies:
 - name: common
   repository: oci://registry-1.docker.io/bitnamicharts
-  version: 2.19.2
-- name: postgresql
+  version: 2.22.0
+- name: mongodb
   repository: https://charts.bitnami.com/bitnami
-  version: 15.2.7
+  version: 15.6.22
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
-  version: 21.1.0
-digest: sha256:ca11fe2fc2cc24913bcc633ca927e4b30a48870285a3c8ae95a140ce19b44d1e
-generated: "2024-04-30T19:14:29.317387727+02:00"
+  version: 22.1.2
+digest: sha256:d12da76a8e37e2c842d48c0243765f275070a3b7d4876637280594aaa8d3035c
+generated: "2024-09-07T22:00:15.851075091+02:00"
