@@ -76,44 +76,33 @@
 {{- end }}
 
 {{- define "snoty.envLoaders" -}}
-{{- with $.Values.appConfig }}
-  {{ if kindIs "map" .database }}
-  {{- with .database }}
-  {{ if kindIs "map" .password }}
-  {{- with .password -}}
-  - name: database.password
+  {{ if kindIs "map" .Values.mongodb.auth }}
+  {{- with .Values.mongodb.auth }}
+  {{ if .existingSecret }}
+  - name: mongodb.authentication.password
     valueFrom:
       secretKeyRef:
-        name: {{ .secretName }}
-        key: {{ .secretKey | default "password" }}
-  {{- end -}}
-  {{- end -}}
-  {{ if kindIs "map" .jdbcUrl }}
-  {{- with .jdbcUrl -}}
-  - name: database.jdbcUrl
-    valueFrom:
-      secretKeyRef:
-        name: {{ .secretName }}
-        key: {{ .secretKey | default "jdbcUrl" }}
+        name: {{ .existingSecret }}
+        key: {{ .secretKey | default "mongodb-passwords" }}
   {{- end -}}
   {{- end -}}
   {{- end -}}
+  {{- with $.Values.appConfig }}
+    {{- with .authentication -}}
+    {{ if kindIs "map" .clientId }}
+    - name: authentication.clientId
+      valueFrom:
+        secretKeyRef:
+          name: {{ .clientId.secretName }}
+          key: {{ .clientId.secretKey | default "clientId" }}
+    {{- end -}}
+    {{ if kindIs "map" .clientSecret }}
+    - name: authentication.clientSecret
+      valueFrom:
+        secretKeyRef:
+          name: {{ .clientSecret.secretName }}
+          key: {{ .clientSecret.secretKey | default "clientSecret" }}
+    {{- end -}}
+    {{- end -}}
   {{- end -}}
-  {{- with .authentication -}}
-  {{ if kindIs "map" .clientId }}
-  - name: authentication.clientId
-    valueFrom:
-      secretKeyRef:
-        name: {{ .clientId.secretName }}
-        key: {{ .clientId.secretKey | default "clientId" }}
-  {{- end -}}
-  {{ if kindIs "map" .clientSecret }}
-  - name: authentication.clientSecret
-    valueFrom:
-      secretKeyRef:
-        name: {{ .clientSecret.secretName }}
-        key: {{ .clientSecret.secretKey | default "clientSecret" }}
-  {{- end -}}
-  {{- end -}}
-{{- end -}}
 {{- end -}}
