@@ -76,33 +76,33 @@
 {{- end }}
 
 {{- define "snoty.envLoaders" -}}
-  {{ if kindIs "map" .Values.mongodb.auth }}
-  {{- with .Values.mongodb.auth }}
-  {{ if .existingSecret }}
-  - name: mongodb.authentication.password
-    valueFrom:
-      secretKeyRef:
-        name: {{ .existingSecret }}
-        key: {{ .secretKey | default "mongodb-passwords" }}
-  {{- end -}}
-  {{- end -}}
-  {{- end -}}
-  {{- with $.Values.appConfig }}
-    {{- with .authentication -}}
-    {{ if kindIs "map" .clientId }}
-    - name: authentication.clientId
-      valueFrom:
-        secretKeyRef:
-          name: {{ .clientId.secretName }}
-          key: {{ .clientId.secretKey | default "clientId" }}
-    {{- end -}}
-    {{ if kindIs "map" .clientSecret }}
-    - name: authentication.clientSecret
-      valueFrom:
-        secretKeyRef:
-          name: {{ .clientSecret.secretName }}
-          key: {{ .clientSecret.secretKey | default "clientSecret" }}
-    {{- end -}}
-    {{- end -}}
-  {{- end -}}
+{{- if kindIs "map" .Values.mongodb.auth }}
+{{- with .Values.mongodb.auth -}}
+{{- if .existingSecret -}}
+- name: mongodb.authentication.password
+  valueFrom:
+    secretKeyRef:
+      name: {{ .existingSecret }}
+      key: {{ .secretKey | default "mongodb-passwords" }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- with $.Values.appConfig -}}
+{{- with .authentication -}}
+{{- if kindIs "map" .clientId }}
+- name: authentication.clientId
+  valueFrom:
+    secretKeyRef:
+      name: {{ .clientId.secretName }}
+      key: {{ .clientId.secretKey | default "clientId" }}
+{{- end -}}
+{{- if kindIs "map" .clientSecret }}
+- name: authentication.clientSecret
+  valueFrom:
+    secretKeyRef:
+      name: {{ .clientSecret.secretName }}
+      key: {{ .clientSecret.secretKey | default "clientSecret" }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}

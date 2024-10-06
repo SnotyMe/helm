@@ -35,10 +35,10 @@ spec:
           {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
           {{- end }}
         env:
-          {{- $envLoaders := include "snoty.envLoaders" . | nindent 8 | trim }}
-          {{- if $envLoaders }}
-          {{ $envLoaders }}
-          {{- end }}
+          {{ $envLoaders := include "snoty.envLoaders" . }}
+          {{- if $envLoaders -}}
+          {{- $envLoaders | nindent 10 | trim -}}
+          {{- end -}}
           {{- if .Values.extraEnvVars }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 10 }}
           {{- end }}
