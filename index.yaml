@@ -3,6 +3,37 @@ entries:
   backend:
   - apiVersion: v2
     appVersion: 0.0.1-176
+    created: "2024-10-06T13:51:19.878948435Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.x.x
+    - condition: mongodb.deploy
+      name: mongodb
+      repository: https://charts.bitnami.com/bitnami
+      version: ~15.6.19
+    - condition: keycloak.deploy
+      name: keycloak
+      repository: https://charts.bitnami.com/bitnami
+      version: 22.1.2
+    description: Backend of the Snoty application suite
+    digest: 23522c9b07393d90df80eb89d8a62e23d29772269af5778b4c056c759c45d2a1
+    home: https://snoty.me
+    icon: https://avatars.githubusercontent.com/u/163506575
+    maintainers:
+    - email: SIMULATAN@proton.me
+      name: Jakob Hofer
+      url: https://github.com/SIMULATAN
+    name: backend
+    sources:
+    - https://github.com/SnotyMe/helm
+    - https://github.com/SnotyMe/snoty-backend
+    type: application
+    urls:
+    - https://github.com/SnotyMe/helm/releases/download/backend-0.2.2/backend-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
+    appVersion: 0.0.1-176
     created: "2024-10-06T12:21:12.083110134Z"
     dependencies:
     - name: common
@@ -183,4 +214,4 @@ entries:
     urls:
     - https://github.com/SnotyMe/helm/releases/download/backend-0.0.2/backend-0.0.2.tgz
     version: 0.0.2
-generated: "2024-10-06T12:21:12.083136312Z"
+generated: "2024-10-06T13:51:19.878969254Z"
