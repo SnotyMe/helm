@@ -129,6 +129,12 @@ extraAppConfig: {}
 
 extraEnvVars: []
 
+download:
+  ## @param download.errorOnDownloadFail whether to fail when any integration fails to download
+  errorOnDownloadFail: true
+  ## @param download.integrations a list of integrations (HTTP(s) URLs) to download and start snoty with
+  integrations: []
+
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
 ingress:
@@ -241,6 +247,8 @@ mongodb:
     rootPassword: changeme
   architecture: standalone
   service:
+    # you may want to change this to `releasename-mongodb`
+    # TODO: figure out what happened here
     nameOverride: snoty-mongodb
   # --- HA ---
   # architecture: replicaset

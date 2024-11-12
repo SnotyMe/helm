@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-scripts
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  integrations.json: {{ toJson .Values.download.integrations | quote }}
+  download-integrations.sh: |-
+    echo "Installing jq..."
+    apk add --no-cache jq
+    echo "Finished installing jq!"
+    echo "Downloading integrations..."
+    echo "Raw input: $(cat integrations.json)"
+    # wget every integration
+    jq -r '.[]' integrations.json | while read -r integration; do
+      echo "Downloading $integration..."
+      # integrations are picked up in /integrations by JIB
+      if wget "$integration" -P /integrations; then
+        echo "Finished downloading $integration!"
+      else
+        echo "Error downloading $integration!"
+        if {{ .Values.download.errorOnDownloadFail }}; then
+          echo "[debug] errorOnDownloadFail is set to true, exiting..."
+          exit 1
+        fi
+      fi
+    done

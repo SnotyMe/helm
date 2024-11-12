@@ -17,10 +17,26 @@ spec:
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
       annotations:
         snoty.me/checksum-config: {{ include "snoty.config" . | sha256sum }}
+        snoty.me/checksum-scripts: {{ include (print $.Template.BasePath "/scripts-configmap.yaml") . | sha256sum }}
+
         {{- if .Values.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
     spec:
+      initContainers:
+      {{- if .Values.download.integrations }}
+      - name: download-integrations
+        image: alpine:3.20
+        volumeMounts:
+          - name: scripts
+            mountPath: /scripts
+          - name: integrations
+            mountPath: /integrations
+        command:
+        - sh
+        - -c
+        - "cd /scripts && ./download-integrations.sh"
+      {{- end }}
       containers:
       - name: {{ include "common.names.fullname" . }}
         image: {{ template "snoty.image" . }}
@@ -48,6 +64,8 @@ spec:
           - mountPath: /app/application.yml
             name: app-config
             subPath: application.yml
+          - name: integrations
+            mountPath: /integrations
         {{- if .Values.customStartupProbe }}
         startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
         {{- else if .Values.startupProbe.enabled }}
@@ -91,5 +109,9 @@ spec:
         - name: app-config
           configMap:
             name: {{ include "common.names.fullname" . }}
-
-
+        - name: scripts
+          configMap:
+            name: {{ printf "%s-scripts" (include "common.names.fullname" .) }}
+            defaultMode: 0755
+        - name: integrations
+          emptyDir:
