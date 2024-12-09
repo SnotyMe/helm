@@ -18,7 +18,7 @@ dependencies:
     version: 2.x.x
     repository: oci://registry-1.docker.io/bitnamicharts
   - name: mongodb
-    version: ~16.0.0
+    version: ~16.3.0
     repository: https://charts.bitnami.com/bitnami
     condition: mongodb.deploy
   - name: keycloak
