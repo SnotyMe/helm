@@ -22,7 +22,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: mongodb.deploy
   - name: keycloak
-    version: 22.1.2
+    version: 22.2.6
     repository: https://charts.bitnami.com/bitnami
     condition: keycloak.deploy
 
