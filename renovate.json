@@ -1,3 +1,15 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "separateMultipleMajor": true,
+  "additionalBranchPrefix": "{{parentDir}}/",
+  "semanticCommitScope": "{{parentDir}}",
+  "semanticCommits": "enabled",
+  "commitMessageLowerCase": "never",
+  "separateMinorPatch": true,
+  "packageRules": [
+    {
+      "updateTypes": ["patch"],
+      "enabled": false
+    }
+  ]
 }
