@@ -1,12 +1,12 @@
 dependencies:
 - name: common
   repository: oci://registry-1.docker.io/bitnamicharts
-  version: 2.28.0
+  version: 2.29.0
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
-  version: 16.4.0
+  version: 16.4.2
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
-  version: 22.1.2
-digest: sha256:b9e72e7f54fc59138675bef2fb0c94c089d84fe1a019f35dcf4a8c1560c7802d
-generated: "2024-12-21T23:17:36.356842597Z"
+  version: 24.4.6
+digest: sha256:68b1391a7198a750eef6a2920c2f34fbb5c31202a3b983e6dce9ab036bc59525
+generated: "2025-01-21T22:10:07.503796211Z"
