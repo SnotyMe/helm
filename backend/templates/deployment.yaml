@@ -26,7 +26,7 @@ spec:
       initContainers:
       {{- if .Values.download.integrations }}
       - name: download-integrations
-        image: alpine:3.20
+        image: alpine:3.21
         volumeMounts:
           - name: scripts
             mountPath: /scripts
@@ -41,6 +41,10 @@ spec:
       - name: {{ include "common.names.fullname" . }}
         image: {{ template "snoty.image" . }}
         ports:
+          {{ if .Values.appConfig.jvmDebug.enabled -}}
+          - name: jdwp
+            containerPort: 8000
+          {{- end }}
           - name: api
             containerPort: {{ .Values.containerPorts.api }}
           - name: monitoring

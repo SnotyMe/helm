@@ -117,6 +117,9 @@ service:
 replicas: 1
 
 appConfig:
+  jvmDebug:
+    enabled: false
+    suspend: true
   environment: PRODUCTION
   corsHosts:
     - '*'
@@ -124,6 +127,10 @@ appConfig:
     type: InMemory
   ## @param appConfig.database mongodb configuration
     ## @param appConfig.mongodb.connectionString mongodb connection string
+  ## @param appConfig.sql SQL configuration
+    ## @param appConfig.sql.jdbcUrl JDBC connection url
+    ## @param appConfig.sql.username SQL DB username
+    ## @param appConfig.sql.password SQL DB password
 ## @param extraAppConfig Add your own settings, to be added to the `configuration.yml`
 extraAppConfig: {}
 

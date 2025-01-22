@@ -76,7 +76,13 @@
 {{- end }}
 
 {{- define "snoty.envLoaders" -}}
-{{- if kindIs "map" .Values.mongodb.auth }}
+- name: JAVA_TOOL_OPTIONS
+  value: >
+    {{ if .Values.appConfig.jvmDebug.enabled -}}
+    '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend={{ .Values.appConfig.jvmDebug.suspend | ternary "y" "n" }}'
+    {{ end }}
+
+{{ if kindIs "map" .Values.mongodb.auth }}
 {{- with .Values.mongodb.auth -}}
 {{- if .existingSecret -}}
 - name: mongodb.authentication.password
@@ -102,6 +108,29 @@
     secretKeyRef:
       name: {{ .clientSecret.secretName }}
       key: {{ .clientSecret.secretKey | default "clientSecret" }}
+{{- end -}}
+{{- end -}}
+{{- with .sql -}}
+{{- if kindIs "map" .username }}
+- name: sql.username
+  valueFrom:
+    secretKeyRef:
+      name: {{ .username.secretName }}
+      key: {{ .username.secretKey | default "username" }}
+{{- end -}}
+{{- if kindIs "map" .password }}
+- name: sql.password
+  valueFrom:
+    secretKeyRef:
+      name: {{ .password.secretName }}
+      key: {{ .password.secretKey | default "password" }}
+{{- end -}}
+{{- if kindIs "map" .jdbcUrl }}
+- name: sql.jdbcUrl
+  valueFrom:
+    secretKeyRef:
+      name: {{ .jdbcUrl.secretName }}
+      key: {{ .jdbcUrl.secretKey | default "jdbcUrl" }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
