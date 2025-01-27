@@ -14,29 +14,31 @@
     {{- with $.Values.ingress }}
     publicHost: {{ ternary "https" "http" .tls }}://{{ .hostname }}{{ trimSuffix "/" .path }}
     {{- end }}
-    mongodb:
     # if `appConfig.mongodb` is set, it overrides the config from `mongodb`.
     {{- if and $.Values.mongodb.deploy (not (kindIs "map" $.Values.appConfig.mongodb)) }}
-      {{- with $.Values.mongodb }}
-      {{- if .auth.existingSecret }}
-        connection:
-          type: Split
-          srv: {{ eq .architecture "replicaset" }}
-          host: {{ .service.nameOverride }}.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
-          port: {{ .service.ports.mongodb }}
-          database: {{ index .auth.databases 0 }}
-          additionalOptions: tls={{ .tls.enabled }}&ssl={{ .tls.enabled }}
-        authentication:
-          username: {{ index .auth.usernames 0 }}
-          authDatabase: {{ index .auth.databases 0 }}
-          # password is loaded from existingSecret
-      {{- else }}
-        connection:
-          # does not support architecture=replicaset, prefer using externalSecret
-          type: ConnectionString
-          connectionString: mongodb://{{ index .auth.usernames 0 }}:{{ index .auth.passwords 0 }}@{{ $.Release.Name }}-mongodb/{{ index .auth.databases 0 }}
-      {{- end }}
-      {{- end }}
+    database:
+      type: mongodb
+    {{- with $.Values.mongodb }}
+    {{- if .auth.existingSecret }}
+    mongodb:
+      connection:
+        type: Split
+        srv: {{ eq .architecture "replicaset" }}
+        host: {{ .service.nameOverride }}.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
+        port: {{ .service.ports.mongodb }}
+        database: {{ index .auth.databases 0 }}
+        additionalOptions: tls={{ .tls.enabled }}&ssl={{ .tls.enabled }}
+      authentication:
+        username: {{ index .auth.usernames 0 }}
+        authDatabase: {{ index .auth.databases 0 }}
+        # password is loaded from existingSecret
+    {{- else }}
+      connection:
+        # does not support architecture=replicaset, prefer using externalSecret
+        type: ConnectionString
+        connectionString: mongodb://{{ index .auth.usernames 0 }}:{{ index .auth.passwords 0 }}@{{ $.Release.Name }}-mongodb/{{ index .auth.databases 0 }}
+    {{- end }}
+    {{- end }}
     {{- else }}
       {{- with $.Values.appConfig.mongodb }}
       {{- if kindIs "string" .connectionString }}
@@ -82,7 +84,7 @@
     '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend={{ .Values.appConfig.jvmDebug.suspend | ternary "y" "n" }}'
     {{ end }}
 
-{{ if kindIs "map" .Values.mongodb.auth }}
+{{ if and (.Values.mongodb.deploy) (kindIs "map" .Values.mongodb.auth) }}
 {{- with .Values.mongodb.auth -}}
 {{- if .existingSecret -}}
 - name: mongodb.authentication.password
@@ -110,6 +112,9 @@
       key: {{ .clientSecret.secretKey | default "clientSecret" }}
 {{- end -}}
 {{- end -}}
+{{- if kindIs "map" .sql }}
+- name: database.type
+  value: sql
 {{- with .sql -}}
 {{- if kindIs "map" .username }}
 - name: sql.username
@@ -131,6 +136,7 @@
     secretKeyRef:
       name: {{ .jdbcUrl.secretName }}
       key: {{ .jdbcUrl.secretKey | default "jdbcUrl" }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
