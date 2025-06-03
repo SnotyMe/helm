@@ -44,18 +44,20 @@ spec:
     {{- if .Values.ingress.extraRules }}
     {{- include "common.tplvalues.render" (dict "value" .Values.ingress.extraRules "context" $) | nindent 4 }}
     {{- end }}
-  {{- if or .Values.ingress.tls .Values.ingress.extraTls }}
+  {{- with .Values.ingress.tls -}}
+  {{- if or .enabled .extraTls }}
   tls:
-    {{- if .Values.ingress.tls }}
+    {{- if .enabled }}
     - hosts:
-        - {{ .Values.ingress.hostname }}
-        {{- range .Values.ingress.extraHosts }}
+        - {{ $.Values.ingress.hostname }}
+        {{- range $.Values.ingress.extraHosts }}
         - {{ .name }}
         {{- end }}
-      secretName: {{ printf "%s-tls" .Values.ingress.hostname }}
+      secretName: {{ .secretName | default (printf "%s-tls" $.Values.ingress.hostname) }}
     {{- end }}
-    {{- if .Values.ingress.extraTls }}
-    {{- include "common.tplvalues.render" ( dict "value" .Values.ingress.extraTls "context" $ ) | nindent 4 }}
+    {{- if .extraTls }}
+    {{- include "common.tplvalues.render" ( dict "value" .extraTls "context" $ ) | nindent 4 }}
     {{- end }}
   {{- end }}
+  {{- end -}}
 {{- end }}
