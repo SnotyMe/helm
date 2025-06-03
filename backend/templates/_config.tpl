@@ -12,7 +12,7 @@
       {{- end -}}
     {{- end }}
     {{- with $.Values.ingress }}
-    publicHost: {{ ternary "https" "http" .tls }}://{{ .hostname }}{{ trimSuffix "/" .path }}
+    publicHost: {{ (or .tls.enabled (not (empty .tls.extraHosts))) | ternary "https" "http" }}://{{ .hostname }}{{ trimSuffix "/" .path }}
     {{- end }}
     # if `appConfig.mongodb` is set, it overrides the config from `mongodb`.
     {{- if and $.Values.mongodb.deploy (not (kindIs "map" $.Values.appConfig.mongodb)) }}
