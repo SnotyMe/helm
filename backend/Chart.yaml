@@ -1,6 +1,6 @@
 apiVersion: v2
 name: backend
-version: 0.7.2
+version: 0.7.3
 description: Backend of the Snoty application suite
 type: application
 home: https://snoty.me
@@ -22,7 +22,7 @@ dependencies:
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: mongodb.deploy
   - name: keycloak
-    version: 24.4.6
+    version: 24.8.1
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: keycloak.deploy
 
