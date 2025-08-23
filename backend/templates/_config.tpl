@@ -84,7 +84,7 @@
     '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend={{ .Values.appConfig.jvmDebug.suspend | ternary "y" "n" }}'
     {{ end }}
 
-{{ if and (.Values.mongodb.deploy) (kindIs "map" .Values.mongodb.auth) }}
+{{ if and (.Values.mongodb.deploy) (not (kindIs "map" $.Values.appConfig.mongodb)) (kindIs "map" .Values.mongodb.auth)  }}
 {{- with .Values.mongodb.auth -}}
 {{- if .existingSecret -}}
 - name: mongodb.authentication.password
