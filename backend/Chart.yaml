@@ -13,16 +13,4 @@ maintainers:
     url: https://github.com/SIMULATAN
 icon: https://avatars.githubusercontent.com/u/163506575
 appVersion: "0.6.1"
-dependencies:
-  - name: common
-    version: 2.x.x
-    repository: oci://registry-1.docker.io/bitnamicharts
-  - name: mongodb
-    version: ~16.4.0
-    repository: oci://registry-1.docker.io/bitnamicharts
-    condition: mongodb.deploy
-  - name: keycloak
-    version: 24.4.6
-    repository: oci://registry-1.docker.io/bitnamicharts
-    condition: keycloak.deploy
-
+dependencies: []

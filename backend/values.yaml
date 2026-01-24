@@ -1,3 +1,5 @@
+fullnameOverride: ""
+
 clusterDomain: cluster.local
 
 ## @param image.registry [default: ghcr.io] image registry
@@ -30,12 +32,6 @@ image:
   ##
   debug: false
 
-## @param commonAnnotations Common annotations to add to all Harbor resources (sub-charts are not considered). Evaluated as a template
-##
-commonAnnotations: {}
-## @param commonLabels Common labels to add to all Harbor resources (sub-charts are not considered). Evaluated as a template
-##
-commonLabels: {}
 ## @param extraDeploy Array with extra yaml to deploy with the chart. Evaluated as a template
 ##
 extraDeploy: []
