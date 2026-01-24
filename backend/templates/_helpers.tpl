@@ -28,6 +28,7 @@ app.kubernetes.io/name: {{ include "snoty.fullname" .context }}
 app.kubernetes.io/instance: {{ .context.Release.Name }}
 app.kubernetes.io/version: {{ .context.Chart.AppVersion }}
 app.kubernetes.io/managed-by: {{ .context.Release.Service }}
+helm.sh/chart: {{ printf "%s-%s" .context.Chart.Name .context.Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- with .customLabels }}
 {{ toYaml . }}
 {{- end }}

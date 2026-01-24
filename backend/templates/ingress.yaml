@@ -5,13 +5,10 @@ metadata:
   name: {{ include "snoty.fullname" . }}
   namespace: {{ .Release.Namespace | quote }}
   labels: {{ include "snoty.labels" (dict "context" $) | nindent 4 }}
+  {{- if .Values.ingress.annotations }}
   annotations:
-    {{- if .Values.ingress.certManager }}
-    kubernetes.io/tls-acme: "true"
-    {{- end }}
-    {{- if .Values.ingress.annotations }}
     {{ include "snoty.tpl" (dict "value" .Values.ingress.annotations "context" $) | nindent 4 }}
-    {{- end }}
+  {{- end }}
 spec:
   {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
@@ -27,8 +24,10 @@ spec:
           - path: {{ .Values.ingress.path }}
             pathType: {{ .Values.ingress.pathType }}
             backend:
-              serviceName: {{ include "snoty.fullname" $ }}
-              servicePort: api
+              service:
+                name: {{ include "snoty.fullname" $ }}
+                port:
+                  name: api
     {{- end }}
     {{- range .Values.ingress.extraHosts }}
     - host: {{ .name | quote }}
@@ -37,8 +36,15 @@ spec:
           - path: {{ default "/" .path }}
             pathType: {{ default "ImplementationSpecific" .pathType }}
             backend:
-              serviceName: {{ include "snoty.fullname" $ }}
-              servicePort: {{ .servicePort | default "api" }}
+              service:
+                name: {{ include "snoty.fullname" $ }}
+                {{- if kindIs "map" .servicePort }}
+                port:
+                  {{- include "snoty.tpl" (dict "value" .servicePort "context" $) | nindent 6 }}
+                {{- else }}
+                port:
+                  name: {{ .servicePort | default "api" }}
+                {{- end }}
     {{- end }}
     {{- if .Values.ingress.extraRules }}
     {{ include "snoty.tpl" (dict "value" .Values.ingress.extraRules "context" $) | nindent 4 }}

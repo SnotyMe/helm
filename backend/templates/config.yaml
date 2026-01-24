@@ -6,4 +6,4 @@ metadata:
   labels: {{ include "snoty.labels" (dict "context" $) | nindent 4 }}
 data:
   application.yml: |-
-    {{ include "snoty.config" . | nindent 4 }}
+    {{- include "snoty.config" . | nindent 4 -}}
