@@ -15,8 +15,8 @@ featureFlags:
   {{ end }}
 {{ with .database -}}
 database:
-  {{- if eq "mongodb" .type }}
-  type: mongodb
+  {{- if eq "mongodb" .adapter }}
+  adapter: mongodb
   mongodb:
     connection:
     {{- with .mongodb.connection }}
@@ -33,8 +33,8 @@ database:
       database: {{ .database }}
       {{- end }}
     {{ end -}}
-  {{- else if eq "sql" .type }}
-  type: sql
+  {{- else if eq "sql" .adapter }}
+  adapter: sql
   sql:
   {{- with .sql }}
     {{- if kindIs "string" .jdbcUrl }}
@@ -51,8 +51,8 @@ database:
 {{- end }}
 {{- with .authentication }}
 authentication:
-  {{- if eq "keycloak" .type }}
-  type: keycloak
+  {{- if eq "keycloak" .adapter }}
+  adapter: keycloak
   keycloak:
   {{- with .keycloak }}
     baseUrl: {{ .baseUrl }}
@@ -69,8 +69,8 @@ authentication:
       {{ .roleMappings }}
     {{- end }}
   {{- end }}
-  {{- else if eq "oidc" .type }}
-  type: oidc
+  {{- else if eq "oidc" .adapter }}
+  adapter: oidc
   oidc:
   {{- with .oidc }}
     issuerUrl: {{ .issuerUrl }}
