@@ -1,12 +1,3 @@
-dependencies:
-- name: common
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 2.31.3
-- name: mongodb
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 16.4.12
-- name: keycloak
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 24.4.6
-digest: sha256:0cf065446e60180a837081972e09bd345261ca3cf2376b5f3aaa65e84dcdb46e
-generated: "2025-07-14T00:53:30.014752665+02:00"
+dependencies: []
+digest: sha256:643d5437104296e21d906ecb15b2c96ad278f20cfc4af53b12bb6069bd853726
+generated: "2026-01-24T21:10:36.32532749+01:00"

@@ -1,143 +1,170 @@
-{{- define "snoty.baseConfig" -}}
-    {{- with $.Values.appConfig }}
-    environment: {{ .environment }}
-    corsHosts:
-      {{ range .corsHosts }}
-        - {{ . | quote }}
-      {{ end }}
-    featureFlags:
-      {{- toYaml .featureFlags | nindent 12 -}}
-      {{- if and .featureFlags.flags (ne .featureFlags.type "InMemory") -}}
-        {{- fail "Error: custom feature flag values are only supported when using the InMemory provider" -}}
-      {{- end -}}
-    {{- end }}
-    {{- with $.Values.ingress }}
-    publicHost: {{ (or .tls.enabled (not (empty .tls.extraHosts))) | ternary "https" "http" }}://{{ .hostname }}{{ trimSuffix "/" .path }}
-    {{- end }}
-    # if `appConfig.mongodb` is set, it overrides the config from `mongodb`.
-    {{- if and $.Values.mongodb.deploy (not (kindIs "map" $.Values.appConfig.mongodb)) }}
-    database:
-      type: mongodb
-    {{- with $.Values.mongodb }}
-    {{- if .auth.existingSecret }}
-    mongodb:
-      connection:
-        type: Split
-        srv: {{ eq .architecture "replicaset" }}
-        host: {{ .service.nameOverride }}.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
-        port: {{ .service.ports.mongodb }}
-        database: {{ index .auth.databases 0 }}
-        additionalOptions: tls={{ .tls.enabled }}&ssl={{ .tls.enabled }}
-      authentication:
-        username: {{ index .auth.usernames 0 }}
-        authDatabase: {{ index .auth.databases 0 }}
-        # password is loaded from existingSecret
-    {{- else }}
-      connection:
-        # does not support architecture=replicaset, prefer using externalSecret
-        type: ConnectionString
-        connectionString: mongodb://{{ index .auth.usernames 0 }}:{{ index .auth.passwords 0 }}@{{ $.Release.Name }}-mongodb/{{ index .auth.databases 0 }}
-    {{- end }}
-    {{- end }}
-    {{- else }}
-      {{- with $.Values.appConfig.mongodb }}
+{{- define "snoty.baseConfig" }}
+{{- with $.Values.appConfig }}
+environment: {{ .environment }}
+{{- with $.Values.ingress }}
+publicHost: {{ (or .tls.enabled (not (empty .tls.extraHosts))) | ternary "https" "http" }}://{{ .hostname }}{{ trimSuffix "/" .path }}
+{{- end }}
+corsHosts:
+{{ range .corsHosts }}
+  - {{ . | quote }}
+{{ end }}
+featureFlags:
+  {{- toYaml .featureFlags | nindent 2 -}}
+  {{ if and .featureFlags.flags (ne .featureFlags.type "InMemory") -}}
+    {{ fail "Error: custom feature flag values are only supported when using the InMemory provider" }}
+  {{ end }}
+{{ with .database -}}
+database:
+  {{- if eq "mongodb" .adapter }}
+  adapter: mongodb
+  mongodb:
+    connection:
+    {{- with .mongodb.connection }}
+      {{- if eq "ConnectionString" .type}}
+      type: ConnectionString
       {{- if kindIs "string" .connectionString }}
       connectionString: {{ .connectionString }}
+      {{ end -}}
+      {{- else if eq "Split" .type }}
+      type: Split
+      srv: {{ .srv }}
+      host: {{ .host }}
+      port: {{ .port }}
+      database: {{ .database }}
       {{- end }}
-      {{- end }}
+    {{ end -}}
+  {{- else if eq "sql" .adapter }}
+  adapter: sql
+  sql:
+  {{- with .sql }}
+    {{- if kindIs "string" .jdbcUrl }}
+    jdbcUrl: {{ .jdbcUrl }}
     {{- end }}
-    authentication:
-    {{- if $.Values.keycloak.deploy }}
-      {{- with $.Values.keycloak }}
-      serverUrl: {{ ternary "https" "http" .ingress.tls }}://{{ .ingress.hostname }}/{{ trimPrefix "/" (($.Values.appConfig.authentication).path | default .ingress.path) }}
-      clientId: {{ $.Values.appConfig.authentication.clientId }}
-      clientSecret: {{ $.Values.appConfig.authentication.clientSecret }}
-      {{- end }}
-    {{- else }}
-      {{- with $.Values.appConfig.authentication }}
-      {{- if kindIs "string" .serverUrl }}
-      serverUrl: {{ .serverUrl }}/{{ trimPrefix "/" (.path | default "") }}
-      {{- end }}
-      {{- if kindIs "string" .issuerUrl }}
-      issuerUrl: {{ .issuerUrl }}{{ trimSuffix "/" (.path | default "") }}
-      {{- end }}
-      {{- if kindIs "string" .clientId }}
-      clientId: {{ .clientId }}
-      {{- end }}
-      {{- if kindIs "string" .clientSecret }}
-      clientSecret: {{ .clientSecret }}
-      {{- end }}
-      {{- end }}
+    {{- if kindIs "string" .username }}
+    username: {{ .username }}
     {{- end }}
+    {{- if kindIs "string" .password }}
+    password: {{ .password }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- with .authentication }}
+authentication:
+  {{- if eq "keycloak" .adapter }}
+  adapter: keycloak
+  keycloak:
+  {{- with .keycloak }}
+    baseUrl: {{ .baseUrl }}
+    realm: {{ .realm }}
+    issuerUrl: '{{ .issuerUrl | default (printf "%s/realms/%s" .baseUrl .realm) }}'
+    {{- if kindIs "string" .clientId }}
+    clientId: {{ .clientId }}
+    {{- end }}
+    {{- if kindIs "string" .clientSecret }}
+    clientSecret: {{ .clientSecret }}
+    {{- end }}
+    {{- if kindIs "map" .roleMappings }}
+    roleMappings:
+      {{ .roleMappings }}
+    {{- end }}
+  {{- end }}
+  {{- else if eq "oidc" .adapter }}
+  adapter: oidc
+  oidc:
+  {{- with .oidc }}
+    issuerUrl: {{ .issuerUrl }}
+    {{- $oidcUrl := .oidcUrl | default .issuerUrl -}}
+    oidcUrl: {{ $oidcUrl }}
+    authUrl: {{ .authUrl | default (printf "%s/auth" $oidcUrl) }}
+    tokenUrl: {{ .tokenUrl | default (printf "%s/token" $oidcUrl) }}
+    certUrl: {{ .certUrl | default (printf "%s/certs" $oidcUrl) }}
+    userInfoUrl: {{ .userInfoUrl | default (printf "%s/userinfo" $oidcUrl) }}
+    {{- if kindIs "string" .clientId }}
+    clientId: {{ .clientId }}
+    {{- end }}
+    {{- if kindIs "string" .clientSecret }}
+    clientSecret: {{ .clientSecret }}
+    {{- end }}
+    {{- if .rolesClaim }}
+    rolesClaim: {{ .rolesClaim }}
+    {{- end }}
+    {{- if kindIs "map" .roleMappings }}
+    roleMappings:
+      {{ .roleMappings }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- define "snoty.config" -}}
-    {{- $baseConfig := include "snoty.baseConfig" . | fromYaml }}
-    {{- $config := merge .Values.extraAppConfig $baseConfig }}
-    {{- $config | toYaml }}
+{{- $baseConfig := include "snoty.baseConfig" . | fromYaml -}}
+{{- $config := merge .Values.extraAppConfig $baseConfig -}}
+{{- $config | toYaml -}}
+{{- end -}}
+
+{{- define "snoty.envLoaders" }}
+{{- $cfg := .Values.appConfig }}
+
+{{- if $cfg.jvmDebug.enabled }}
+- name: JAVA_TOOL_OPTIONS
+  value: '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend={{ $cfg.jvmDebug.suspend | ternary "y" "n" }}'
 {{- end }}
 
-{{- define "snoty.envLoaders" -}}
-- name: JAVA_TOOL_OPTIONS
-  value: >
-    {{ if .Values.appConfig.jvmDebug.enabled -}}
-    '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend={{ .Values.appConfig.jvmDebug.suspend | ternary "y" "n" }}'
-    {{ end }}
+{{- with $cfg.authentication.keycloak }}
 
-{{ if and (.Values.mongodb.deploy) (not (kindIs "map" $.Values.appConfig.mongodb)) (kindIs "map" .Values.mongodb.auth)  }}
-{{- with .Values.mongodb.auth -}}
-{{- if .existingSecret -}}
-- name: mongodb.authentication.password
-  valueFrom:
-    secretKeyRef:
-      name: {{ .existingSecret }}
-      key: {{ .secretKey | default "mongodb-passwords" }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- with $.Values.appConfig -}}
-{{- with .authentication -}}
 {{- if kindIs "map" .clientId }}
-- name: authentication.clientId
-  valueFrom:
-    secretKeyRef:
-      name: {{ .clientId.secretName }}
-      key: {{ .clientId.secretKey | default "clientId" }}
-{{- end -}}
+{{ include "snoty.secretEnv" (dict "name" "authentication.keycloak.clientId" "secret" .clientId "defaultKey" "clientId") }}
+{{- end }}
+
 {{- if kindIs "map" .clientSecret }}
-- name: authentication.clientSecret
-  valueFrom:
-    secretKeyRef:
-      name: {{ .clientSecret.secretName }}
-      key: {{ .clientSecret.secretKey | default "clientSecret" }}
-{{- end -}}
-{{- end -}}
-{{- if kindIs "map" .sql }}
-- name: database.type
-  value: sql
-{{- with .sql -}}
-{{- if kindIs "map" .username }}
-- name: sql.username
-  valueFrom:
-    secretKeyRef:
-      name: {{ .username.secretName }}
-      key: {{ .username.secretKey | default "username" }}
-{{- end -}}
-{{- if kindIs "map" .password }}
-- name: sql.password
-  valueFrom:
-    secretKeyRef:
-      name: {{ .password.secretName }}
-      key: {{ .password.secretKey | default "password" }}
-{{- end -}}
+{{ include "snoty.secretEnv" (dict "name" "authentication.keycloak.clientSecret" "secret" .clientSecret "defaultKey" "clientSecret") }}
+{{- end }}
+
+{{- end }}
+
+{{- with $cfg.authentication.oidc }}
+
+{{- if kindIs "map" .clientId }}
+{{ include "snoty.secretEnv" (dict "name" "authentication.oidc.clientId" "secret" .clientId "defaultKey" "clientId") }}
+{{- end }}
+
+{{- if kindIs "map" .clientSecret }}
+{{ include "snoty.secretEnv" (dict "name" "authentication.oidc.clientSecret" "secret" .clientSecret "defaultKey" "clientSecret") }}
+{{- end }}
+
+{{- end }}
+
+{{- with $cfg.database.mongodb }}
+{{- if and (kindIs "map" .connection) (eq .connection.type "ConnectionString") (kindIs "map" .connection.connectionString) }}
+{{ include "snoty.secretEnv" (dict "name" "database.mongodb.connection.connectionString" "secret" .connection.connectionString "defaultKey" "connectionString") }}
+{{- end }}
+{{- end }}
+
+{{- with $cfg.database.sql }}
+
 {{- if kindIs "map" .jdbcUrl }}
-- name: sql.jdbcUrl
+{{ include "snoty.secretEnv" (dict "name" "database.sql.jdbcUrl" "secret" .jdbcUrl "defaultKey" "jdbcUrl") }}
+{{- end }}
+
+{{- if kindIs "map" .username }}
+{{ include "snoty.secretEnv" (dict "name" "database.sql.username" "secret" .username "defaultKey" "username") }}
+{{- end }}
+
+{{- if kindIs "map" .password }}
+{{ include "snoty.secretEnv" (dict "name" "database.sql.password" "secret" .password "defaultKey" "password") }}
+{{- end }}
+
+{{- end }}
+
+{{- end -}}
+
+{{- define "snoty.secretEnv" -}}
+- name: {{ .name }}
   valueFrom:
     secretKeyRef:
-      name: {{ .jdbcUrl.secretName }}
-      key: {{ .jdbcUrl.secretKey | default "jdbcUrl" }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+      name: {{ .secret.secretName }}
+      key: {{ default .defaultKey .secret.secretKey }}
 {{- end -}}

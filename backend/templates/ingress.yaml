@@ -1,18 +1,14 @@
 {{- if .Values.ingress.enabled }}
-apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+apiVersion: {{ .Values.ingress.apiVersion | default "networking.k8s.io/v1" }}
 kind: Ingress
 metadata:
-  name: {{ include "common.names.fullname" . }}
+  name: {{ include "snoty.fullname" . }}
   namespace: {{ .Release.Namespace | quote }}
-  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  labels: {{ include "snoty.labels" (dict "context" $) | nindent 4 }}
+  {{- if .Values.ingress.annotations }}
   annotations:
-    {{- if .Values.ingress.certManager }}
-    kubernetes.io/tls-acme: "true"
-    {{- end }}
-    {{- if or .Values.ingress.annotations .Values.commonAnnotations }}
-    {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.ingress.annotations .Values.commonAnnotations ) "context" . ) }}
-    {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
-    {{- end }}
+    {{ include "snoty.tpl" (dict "value" .Values.ingress.annotations "context" $) | nindent 4 }}
+  {{- end }}
 spec:
   {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
@@ -23,11 +19,15 @@ spec:
       http:
         paths:
           {{- if .Values.ingress.extraPaths }}
-          {{- toYaml .Values.ingress.extraPaths | nindent 10 }}
+          {{ toYaml .Values.ingress.extraPaths | nindent 10 }}
           {{- end }}
           - path: {{ .Values.ingress.path }}
             pathType: {{ .Values.ingress.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" .) "servicePort" "api" "context" $)  | nindent 14 }}
+            backend:
+              service:
+                name: {{ include "snoty.fullname" $ }}
+                port:
+                  name: api
     {{- end }}
     {{- range .Values.ingress.extraHosts }}
     - host: {{ .name | quote }}
@@ -35,12 +35,21 @@ spec:
         paths:
           - path: {{ default "/" .path }}
             pathType: {{ default "ImplementationSpecific" .pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" $) "servicePort" "api" "context" $) | nindent 14 }}
+            backend:
+              service:
+                name: {{ include "snoty.fullname" $ }}
+                {{- if kindIs "map" .servicePort }}
+                port:
+                  {{- include "snoty.tpl" (dict "value" .servicePort "context" $) | nindent 6 }}
+                {{- else }}
+                port:
+                  name: {{ .servicePort | default "api" }}
+                {{- end }}
     {{- end }}
     {{- if .Values.ingress.extraRules }}
-    {{- include "common.tplvalues.render" (dict "value" .Values.ingress.extraRules "context" $) | nindent 4 }}
+    {{ include "snoty.tpl" (dict "value" .Values.ingress.extraRules "context" $) | nindent 4 }}
     {{- end }}
-  {{- with .Values.ingress.tls -}}
+  {{- with .Values.ingress.tls }}
   {{- if or .enabled .extraTls }}
   tls:
     {{- if .enabled }}
@@ -52,8 +61,8 @@ spec:
       secretName: {{ .secretName | default (printf "%s-tls" $.Values.ingress.hostname) }}
     {{- end }}
     {{- if .extraTls }}
-    {{- include "common.tplvalues.render" ( dict "value" .extraTls "context" $ ) | nindent 4 }}
+    {{ include "snoty.tpl" ( dict "value" .extraTls "context" $ ) | nindent 4 }}
     {{- end }}
   {{- end }}
-  {{- end -}}
+  {{- end }}
 {{- end }}

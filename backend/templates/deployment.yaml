@@ -1,26 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.names.fullname" . }}
+  name: {{ include "snoty.fullname" . }}
   namespace: {{ .Release.Namespace | quote }}
-  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-  {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
-  {{- end }}
+  labels: {{ include "snoty.labels" (dict "context" $) | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
-  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) }}
+  {{- $podLabels := .Values.podLabels }}
   selector:
-    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+    matchLabels: {{ include "snoty.labels.match" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
   template:
     metadata:
-      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+      labels: {{ include "snoty.labels" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
       annotations:
         snoty.me/checksum-config: {{ include "snoty.config" . | sha256sum }}
         snoty.me/checksum-scripts: {{ include (print $.Template.BasePath "/scripts-configmap.yaml") . | sha256sum }}
-
         {{- if .Values.podAnnotations }}
-        {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+        {{ include "snoty.tpl" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
     spec:
       initContainers:
@@ -38,13 +34,13 @@ spec:
         - "cd /scripts && ./download-integrations.sh"
       {{- end }}
       containers:
-      - name: {{ include "common.names.fullname" . }}
-        image: {{ template "snoty.image" . }}
+      - name: {{ include "snoty.fullname" . }}
+        image: {{ include "snoty.image" . }}
         ports:
           {{ if .Values.appConfig.jvmDebug.enabled -}}
           - name: jdwp
             containerPort: 8000
-          {{- end }}
+          {{ end -}}
           - name: api
             containerPort: {{ .Values.containerPorts.api }}
           - name: monitoring
@@ -52,15 +48,15 @@ spec:
           - name: jobrunr
             containerPort: {{ .Values.containerPorts.jobrunr }}
           {{- if .Values.extraContainerPorts }}
-          {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
+          {{ include "snoty.tpl" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
           {{- end }}
         env:
-          {{ $envLoaders := include "snoty.envLoaders" . }}
-          {{- if $envLoaders -}}
-          {{- $envLoaders | nindent 10 | trim -}}
+          {{- $envLoaders := include "snoty.envLoaders" . -}}
+          {{ if $envLoaders -}}
+          {{ $envLoaders | indent 10 }}
           {{- end -}}
-          {{- if .Values.extraEnvVars }}
-          {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 10 }}
+          {{- if .Values.extraEnvVars -}}
+          {{ include "snoty.tpl" (dict "value" .Values.extraEnvVars "context" $) | nindent 10 }}
           {{- end }}
         envFrom:
           {{- .Values.extraEnvFrom | toYaml | nindent 10 }}
@@ -71,7 +67,7 @@ spec:
           - name: integrations
             mountPath: /integrations
         {{- if .Values.customStartupProbe }}
-        startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
+        startupProbe: {{ include "snoty.tpl" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
         {{- else if .Values.startupProbe.enabled }}
         startupProbe:
           httpGet:
@@ -84,7 +80,7 @@ spec:
           failureThreshold: {{ .Values.startupProbe.failureThreshold }}
         {{- end }}
         {{- if .Values.customLivenessProbe }}
-        livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}
+        livenessProbe: {{ include "snoty.tpl" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}
         {{- else if .Values.livenessProbe.enabled }}
         livenessProbe:
           httpGet:
@@ -97,7 +93,7 @@ spec:
           failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
         {{- end }}
         {{- if .Values.customReadinessProbe }}
-        readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
+        readinessProbe: {{ include "snoty.tpl" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
         {{- else if .Values.readinessProbe.enabled }}
         readinessProbe:
           httpGet:
@@ -112,10 +108,10 @@ spec:
       volumes:
         - name: app-config
           configMap:
-            name: {{ include "common.names.fullname" . }}
+            name: {{ include "snoty.fullname" . }}
         - name: scripts
           configMap:
-            name: {{ printf "%s-scripts" (include "common.names.fullname" .) }}
+            name: {{ printf "%s-scripts" (include "snoty.fullname" .) }}
             defaultMode: 0755
         - name: integrations
-          emptyDir:
+          emptyDir: {}
