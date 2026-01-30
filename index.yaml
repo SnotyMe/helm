@@ -3,6 +3,25 @@ entries:
   backend:
   - apiVersion: v2
     appVersion: 0.7.0
+    created: "2026-01-30T16:10:20.250620917Z"
+    description: Backend of the Snoty application suite
+    digest: b9ecb3e944a29ac21d0c6674c05499ca94c1a1b6b0c7b6719ade27b74fb47096
+    home: https://snoty.me
+    icon: https://avatars.githubusercontent.com/u/163506575
+    maintainers:
+    - email: contact@snoty.me
+      name: Jakob Hofer
+      url: https://github.com/SIMULATAN
+    name: backend
+    sources:
+    - https://github.com/SnotyMe/helm
+    - https://github.com/SnotyMe/snoty-backend
+    type: application
+    urls:
+    - https://github.com/SnotyMe/helm/releases/download/backend-0.9.0-rc.1/backend-0.9.0-rc.1.tgz
+    version: 0.9.0-rc.1
+  - apiVersion: v2
+    appVersion: 0.7.0
     created: "2026-01-30T13:46:28.327543206Z"
     description: Backend of the Snoty application suite
     digest: 53a7d21b943e683bf426491239e80adbe19392365db9d5d606cb7523e5487661
@@ -593,4 +612,4 @@ entries:
     urls:
     - https://github.com/SnotyMe/helm/releases/download/backend-0.0.2/backend-0.0.2.tgz
     version: 0.0.2
-generated: "2026-01-30T13:46:28.327716641Z"
+generated: "2026-01-30T16:10:20.250786455Z"
