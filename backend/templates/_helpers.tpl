@@ -1,6 +1,10 @@
+{{- define "snoty.version" -}}
+{{ .Values.image.tag | default .Chart.AppVersion }}
+{{- end }}
+
 {{- define "snoty.image" -}}
 {{/* per default, the image tag is the `appVersion`. however, it can be overriden by the user */}}
-  {{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
+  {{- $tag := include "snoty.version" . -}}
   {{- $digestSuffix := "" -}}
   {{- if and .Values.image.digest (ne .Values.image.digest "") -}}
     {{- $digestSuffix = printf "@%s" .Values.image.digest -}}
@@ -23,20 +27,20 @@
   {{- end }}
 {{- end }}
 
-{{- define "snoty.labels" -}}
-app.kubernetes.io/name: {{ include "snoty.fullname" .context }}
-app.kubernetes.io/instance: {{ .context.Release.Name }}
-app.kubernetes.io/version: {{ .context.Chart.AppVersion }}
-app.kubernetes.io/managed-by: {{ .context.Release.Service }}
-helm.sh/chart: {{ printf "%s-%s" .context.Chart.Name .context.Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{/* TODO: incorporate `snoty-` into chart name */}}
+{{- define "snoty.labels.match" -}}
+app.kubernetes.io/name: snoty-{{ .context.Chart.Name }}
+app.kubernetes.io/instance: {{ include "snoty.fullname" .context }}
 {{- with .customLabels }}
 {{ toYaml . }}
 {{- end }}
 {{- end }}
 
-{{- define "snoty.labels.match" -}}
-app.kubernetes.io/name: {{ include "snoty.fullname" .context }}
-app.kubernetes.io/instance: {{ .context.Release.Name }}
+{{- define "snoty.labels" -}}
+{{ include "snoty.labels.match" (dict "customLabels" .customLabels "context" .context) }}
+app.kubernetes.io/version: {{ include "snoty.version" .context }}
+app.kubernetes.io/managed-by: {{ .context.Release.Service }}
+helm.sh/chart: {{ printf "%s-%s" .context.Chart.Name .context.Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- with .customLabels }}
 {{ toYaml . }}
 {{- end }}
