@@ -20,18 +20,18 @@ spec:
         {{- end }}
     spec:
       initContainers:
-      {{- if .Values.download.integrations }}
-      - name: download-integrations
+      {{- if .Values.download.extensions }}
+      - name: download-extensions
         image: alpine:3.21
         volumeMounts:
           - name: scripts
             mountPath: /scripts
-          - name: integrations
-            mountPath: /integrations
+          - name: extensions
+            mountPath: /extensions
         command:
         - sh
         - -c
-        - "cd /scripts && ./download-integrations.sh"
+        - "cd /scripts && ./download-extensions.sh"
       {{- end }}
       containers:
       - name: {{ include "snoty.fullname" . }}
@@ -64,8 +64,8 @@ spec:
           - mountPath: /app/application.yml
             name: app-config
             subPath: application.yml
-          - name: integrations
-            mountPath: /integrations
+          - name: extensions
+            mountPath: /extensions
         {{- if .Values.customStartupProbe }}
         startupProbe: {{ include "snoty.tpl" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
         {{- else if .Values.startupProbe.enabled }}
@@ -113,5 +113,5 @@ spec:
           configMap:
             name: {{ printf "%s-scripts" (include "snoty.fullname" .) }}
             defaultMode: 0755
-        - name: integrations
+        - name: extensions
           emptyDir: {}

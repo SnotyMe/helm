@@ -1,7 +1,7 @@
 apiVersion: v2
 name: backend
-version: 0.9.0-rc.1
-appVersion: 0.7.0
+version: 0.9.0-rc.2
+appVersion: 0.8.0-alpha.5
 description: Backend of the Snoty application suite
 type: application
 home: https://snoty.me

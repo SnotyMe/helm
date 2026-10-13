@@ -133,10 +133,10 @@ extraAppConfig: {}
 extraEnvVars: []
 
 download:
-  ## @param download.errorOnDownloadFail whether to fail when any integration fails to download
+  ## @param download.errorOnDownloadFail whether to fail when any extension fails to download
   errorOnDownloadFail: true
-  ## @param download.integrations a list of integrations (HTTP(s) URLs) to download and start snoty with
-  integrations: []
+  ## @param download.extensions a list of extensions (HTTP(s) URLs) to download and start Snoty with
+  extensions: []
 
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##

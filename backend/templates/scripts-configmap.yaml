@@ -5,21 +5,21 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
   labels: {{ include "snoty.labels" (dict "context" $) | nindent 4 }}
 data:
-  integrations.json: {{ toJson .Values.download.integrations | quote }}
-  download-integrations.sh: |-
+  extensions.json: {{ toJson .Values.download.extensions | quote }}
+  download-extensions.sh: |-
     echo "Installing jq..."
     apk add --no-cache jq
     echo "Finished installing jq!"
-    echo "Downloading integrations..."
-    echo "Raw input: $(cat integrations.json)"
-    # wget every integration
-    jq -r '.[]' integrations.json | while read -r integration; do
-      echo "Downloading $integration..."
-      # integrations are picked up in /integrations by JIB
-      if wget "$integration" -P /integrations; then
-        echo "Finished downloading $integration!"
+    echo "Downloading extensions..."
+    echo "Raw input: $(cat extensions.json)"
+    # wget every extension
+    jq -r '.[]' extensions.json | while read -r extension; do
+      echo "Downloading $extension..."
+      # extensions are picked up in /extensions by JIB
+      if wget "$extension" -P /extensions; then
+        echo "Finished downloading $extension!"
       else
-        echo "Error downloading $integration!"
+        echo "Error downloading $extension!"
         if {{ .Values.download.errorOnDownloadFail }}; then
           echo "[debug] errorOnDownloadFail is set to true, exiting..."
           exit 1
